@@ -1,25 +1,36 @@
 (ns example 
   (:use compojure)) 
 
-(defn current-time (/ (. System currentTimeMillis) 1000.0))
+(def DB (ref #{}))
 
-(defn gen-id
-  (let [base (.toString (rand 100000000))
-        salt (.toString current-time)]
-    ; use zlib to crc32 this sheeit
-    ; Zlib.crc32(base + salt).to_s(36)
-    ))
+(defn current-time 
+  []
+  (/ (. System currentTimeMillis) 1000.0))
+
+(defn gen-id 
+  []
+  (let [base (rand 100000000) salt current-time]
+    (+ base salt)))
 
 (def greeting (slurp "index.html"))
+
+(defn add-channel
+  [id]
+  (alter DB conj id))
+
+(defn list-channels 
+  [& args]
+  (@DB))
 
 (defroutes webservice
   (GET "/" 
     greeting) 
+  (GET "/channels"
+    list-channels)
   (POST "/channels" 
     (let [id gen-id]
       (dosync
-        (add-channel {:name id})
-        (to-json {:id id})))))
+        (add-channel id)))))
 
 (run-server {:port 8080} 
   "/*" (servlet webservice))
