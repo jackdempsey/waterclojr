@@ -8,8 +8,10 @@
   (/ (. System currentTimeMillis) 1000.0))
 
 (defn gen-id 
+  "Generate a random ID. Need to add some Zlib stuff in here"
   []
-  (let [base (rand 100000000) salt current-time]
+  (let [base (rand 100000000) 
+        salt (current-time)]
     (+ base salt)))
 
 (def greeting (slurp "index.html"))
@@ -19,18 +21,19 @@
   (alter DB conj id))
 
 (defn list-channels 
-  [& args]
-  (@DB))
+  []
+  (str @DB))
 
 (defroutes webservice
   (GET "/" 
-    greeting) 
+    greeting)
   (GET "/channels"
-    list-channels)
+    (list-channels))
   (POST "/channels" 
-    (let [id gen-id]
+    (let [id (gen-id)]
       (dosync
-        (add-channel id)))))
+        (add-channel id)))
+    "Ok"))
 
 (run-server {:port 8080} 
   "/*" (servlet webservice))
