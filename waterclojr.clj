@@ -1,5 +1,7 @@
 (ns example 
   (:use compojure)) 
+; clojure-json located at http://github.com/danlarkin/clojure-json/tree/master
+(require '(org.danlarkin [json :as json]))
 
 (def DB (ref #{}))
 
@@ -22,7 +24,7 @@
 
 (defn list-channels 
   []
-  (str @DB))
+  (json/encode-to-str @DB))
 
 (defroutes webservice
   (GET "/" 
@@ -32,8 +34,8 @@
   (POST "/channels" 
     (let [id (gen-id)]
       (dosync
-        (add-channel id)))
-    "Ok"))
+        (add-channel id))
+      (json/encode-to-str id))))
 
 (run-server {:port 8080} 
   "/*" (servlet webservice))
